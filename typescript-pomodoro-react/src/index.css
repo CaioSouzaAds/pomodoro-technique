@@ -6,11 +6,78 @@
 }
 
 body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: #4187b5;
+  transition: backgroud-color 300ms ease-in-out;
+  line-height: 1.5;
+  height: 100vh; /* Garante que o corpo ocupe toda a altura da viewport */
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  max-width: 640px;
+  margin-bottom: 0 auto;
+  align-items: center;
+}
+
+.working {
+  background: #EF5D50;
+}
+
+.hidden {
+  display: none;
+}
+
+.pomodoro{
+  background: #fff;
+  margin: 50px 20px;
+  padding: 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(0,0,0, .5);
+}
+
+.pomodoro h2 {
+  font-size: 24px;
+  text-align: center;
+}
+
+
+.pomodoro .timer {
+  font-size: 6rem;
+  text-align: center;
+}
+
+.pomodoro button{
+  background: #41e1ba;
+  border: none;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 10px 25px;
+  color: #000;
+  transition: backgroud-color 300ms ease-in-out;
+  margin: 20px auto;
+
+}
+
+.working .pomodoro button{
+  background: #EF5D50;
+  color:#fff;
+}
+
+.pomodoro .controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+.pomodoro .details {
+  margin: 20px 0;
 }
 
 code {
