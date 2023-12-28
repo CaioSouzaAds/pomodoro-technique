@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useInterval } from '../hooks/use-interval';
 import { Button } from './button';
 import { Timer } from './timer';
-import { time } from 'console';
 
 interface PomodoroTimerProps {
   pomodoTime: number;
@@ -15,9 +14,11 @@ export function PomodoroTimer(props: PomodoroTimerProps) {
   const [mainTime, setMainTime] = React.useState(props.pomodoTime);
   const [timeCounting, setTimeCounting] = React.useState(false);
   const [working, setWorking] = React.useState(false);
+  const [resting, setResting] = React.useState(false);
 
   useEffect(() => {
     if (working) document.body.classList.add('working');
+    if (resting) document.body.classList.remove('working');
   }, [working]);
 
   useInterval(
@@ -30,6 +31,20 @@ export function PomodoroTimer(props: PomodoroTimerProps) {
   const configureWork = () => {
     setTimeCounting(true);
     setWorking(true);
+    setResting(false);
+    setMainTime(props.pomodoTime);
+  };
+
+  const configureRest = (Long: boolean) => {
+    setResting(true);
+    setTimeCounting(true);
+    setWorking(false);
+
+    if (Long) {
+      setMainTime(props.longRestTime);
+    } else {
+      setMainTime(props.shortRestTime);
+    }
   };
 
   return (
@@ -38,8 +53,9 @@ export function PomodoroTimer(props: PomodoroTimerProps) {
       <Timer mainTime={mainTime}></Timer>
       <div className="controls">
         <Button text="Work" onClick={() => configureWork()}></Button>
-        <Button text="teste" onClick={() => alert('teste')}></Button>
+        <Button text="Resting" onClick={() => configureRest(false)}></Button>
         <Button
+          className={!working && !resting ? 'hidden' : ''}
           text={timeCounting ? 'Pause' : 'Play'}
           onClick={() => setTimeCounting(!timeCounting)}
         ></Button>
