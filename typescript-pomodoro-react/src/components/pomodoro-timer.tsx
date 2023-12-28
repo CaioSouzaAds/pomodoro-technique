@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useInterval } from '../hooks/use-interval';
 import { Button } from './button';
 import { Timer } from './timer';
+import { secondsToTime } from '../utils/seconds-to-time';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bellStart = require('../sounds/bell-start.mp3');
@@ -19,44 +20,87 @@ interface PomodoroTimerProps {
 }
 
 export function PomodoroTimer(props: PomodoroTimerProps) {
-  const [mainTime, setMainTime] = React.useState(props.pomodoTime);
-  const [timeCounting, setTimeCounting] = React.useState(false);
-  const [working, setWorking] = React.useState(false);
-  const [resting, setResting] = React.useState(false);
+  const [mainTime, setMainTime] = useState(props.pomodoTime);
+  const [timeCounting, setTimeCounting] = useState(false);
+  const [working, setWorking] = useState(false);
+  const [resting, setResting] = useState(false);
+  const [cyclesQtdManeger, setCyclesQtdManger] = useState(
+    new Array(props.cycle - 1).fill(true),
+  );
 
-  useEffect(() => {
-    if (working) document.body.classList.add('working');
-    if (resting) document.body.classList.remove('working');
-  }, [working]);
+  const [completedCycles, setCompletedCycles] = useState(0);
+  const [fullWorkingTime, setFullWorkingTime] = useState(0);
+  const [numberOfPomodoros, setNumberOfPomodoros] = useState(0);
 
   useInterval(
     () => {
       setMainTime(mainTime - 1);
+      if (working) setFullWorkingTime(fullWorkingTime + 1);
     },
     timeCounting ? 1000 : null,
   );
 
-  const configureWork = () => {
+  const configureWork = useCallback(() => {
     setTimeCounting(true);
     setWorking(true);
     setResting(false);
     setMainTime(props.pomodoTime);
     audioStartWork.play();
-  };
+  }, [setTimeCounting, setWorking, setResting, setMainTime, props.pomodoTime]);
 
-  const configureRest = (Long: boolean) => {
-    setResting(true);
-    setTimeCounting(true);
-    setWorking(false);
+  const configureRest = useCallback(
+    (Long: boolean) => {
+      setResting(true);
+      setTimeCounting(true);
+      setWorking(false);
 
-    if (Long) {
-      setMainTime(props.longRestTime);
-    } else {
-      setMainTime(props.shortRestTime);
+      if (Long) {
+        setMainTime(props.longRestTime);
+      } else {
+        setMainTime(props.shortRestTime);
+      }
+
+      audioStartWork.play();
+    },
+    [
+      setResting,
+      setTimeCounting,
+      setWorking,
+      setMainTime,
+      props.longRestTime,
+      props.shortRestTime,
+    ],
+  );
+
+  useEffect(() => {
+    if (working) document.body.classList.add('working');
+    if (resting) document.body.classList.remove('working');
+
+    if (mainTime > 0) return;
+
+    if (working && cyclesQtdManeger.length > 0) {
+      configureRest(false);
+      cyclesQtdManeger.pop();
+    } else if (working && cyclesQtdManeger.length <= 0) {
+      configureRest(true);
+      setCyclesQtdManger(new Array(props.cycle - 1).fill(true));
+      setCompletedCycles(completedCycles + 1);
     }
 
-    audioStartWork.play();
-  };
+    if (working) setNumberOfPomodoros(numberOfPomodoros + 1);
+    if (resting) configureWork();
+  }, [
+    working,
+    resting,
+    mainTime,
+    cyclesQtdManeger,
+    configureRest,
+    numberOfPomodoros,
+    setCyclesQtdManger,
+    completedCycles,
+    configureWork,
+    props.cycle,
+  ]);
 
   const handlePlayPauseClick = () => {
     setTimeCounting(!timeCounting);
@@ -65,7 +109,7 @@ export function PomodoroTimer(props: PomodoroTimerProps) {
 
   return (
     <div className="pomodoro">
-      <h2>You are: working</h2>
+      <h2>Você está: {working ? 'Trabalhando' : 'Descansando'}</h2>
       <Timer mainTime={mainTime}></Timer>
       <div className="controls">
         <Button text="Work" onClick={() => configureWork()}></Button>
@@ -78,12 +122,10 @@ export function PomodoroTimer(props: PomodoroTimerProps) {
       </div>
 
       <div className="details">
-        <p>
-          Is simply dummy text of the printing and typesetting industry. Lorem
-          Ipsum has been the industry's standard dummy text ever since the
-          1500s, when an unknown printer took a galley of type and scrambled it
-          to make a type specimen book.
-        </p>
+        <p>Ciclos concluídos: {completedCycles}</p>
+        <p>Horas trabalhadas: {secondsToTime(fullWorkingTime)}</p>
+        <p>Pomodoros concluídos: {numberOfPomodoros}</p>
+        <p></p>
       </div>
     </div>
   );
